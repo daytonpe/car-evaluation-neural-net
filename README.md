@@ -8,10 +8,9 @@ https://archive.ics.uci.edu/ml/datasets/Car+Evaluation
 ### Title: Car Evaluation Database
 
 ### Sources:
-   (a) Creator: Marko Bohanec
-   (b) Donors: Marko Bohanec   (marko.bohanec@ijs.si)
-               Blaz Zupan      (blaz.zupan@ijs.si)
-   (c) Date: June, 1997
+  - Creator: Marko Bohanec
+  - Donors: Marko Bohanec (marko.bohanec@ijs.si) Blaz Zupan (blaz.zupan@ijs.si)
+  - Date: June, 1997
 
 ### Past Usage:
 
@@ -37,7 +36,7 @@ https://archive.ics.uci.edu/ml/datasets/Car+Evaluation
    (M. Bohanec, V. Rajkovic: Expert system for decision
    making. Sistemica 1(1), pp. 145-157, 1990.). The model evaluates
    cars according to the following concept structure:
-
+```
    CAR                      car acceptability
    . PRICE                  overall price
    . . buying               buying price
@@ -48,7 +47,7 @@ https://archive.ics.uci.edu/ml/datasets/Car+Evaluation
    . . . persons            capacity in terms of persons to carry
    . . . lug_boot           the size of luggage boot
    . . safety               estimated safety of the car
-
+```
    Input attributes are printed in lowercase. Besides the target
    concept (CAR), the model includes three intermediate concepts:
    PRICE, TECH, COMFORT. Every concept is in the original model
@@ -69,21 +68,22 @@ https://archive.ics.uci.edu/ml/datasets/Car+Evaluation
 ### Number of Attributes: 6
 
 ### Attribute Values:
-
+```
    buying       v-high, high, med, low
    maint        v-high, high, med, low
    doors        2, 3, 4, 5-more
    persons      2, 4, more
    lug_boot     small, med, big
    safety       low, med, high
-
+```
 ### Missing Attribute Values: none
 
 ### Class Distribution (number of instances per class)
-
+```
    class      N          N[%]
    -----------------------------
    unacc     1210     (70.023 %)
    acc        384     (22.222 %)
    good        69     ( 3.993 %)
    v-good      65     ( 3.762 %)
+```
