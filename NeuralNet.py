@@ -26,8 +26,6 @@
 
 import numpy as np
 import pandas as pd
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
 
 
 class NeuralNet:
@@ -37,10 +35,11 @@ class NeuralNet:
         # h1 and h2 represent the number of nodes in 1st and 2nd hidden layers
 
         raw_input = pd.read_csv(train)
-        # TODO: Remember to implement the preprocess method
         train_dataset = self.preprocess(raw_input)
         ncols = len(train_dataset.columns)
         nrows = len(train_dataset.index)
+        print('ncols:', ncols)
+        print('nrows:', nrows)
         self.X = train_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
         self.y = train_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
         #
@@ -110,14 +109,9 @@ class NeuralNet:
     def __sigmoid_derivative(self, x):
         return x * (1 - x)
 
-    #
-    # TODO: Write code for pre-processing the dataset, which would include standardization,
-    #   normalization, categorical to numerical, etc
-    #
-
     def preprocess(self, raw_input):
         train_set = pd.get_dummies(raw_input)
-        # print(train_set[0:20])
+        print(train_set[0:5])
         return train_set
 
     # Below is the training function
@@ -135,11 +129,14 @@ class NeuralNet:
             self.w12 += update_layer1
             self.w01 += update_input
 
-        print("After " + str(max_iterations)
+        print("\nAfter " + str(max_iterations)
               + " iterations, the total error is " + str(np.sum(error)))
-        print("The final weight vectors are (starting from input to output layers)")
+        print("The final weight vectors are (starting from input to output layers):\n")
+        print('\n**  w01  **')
         print(self.w01)
+        print('\n**  w12  **')
         print(self.w12)
+        print('\n**  w23  **')
         print(self.w23)
 
     def forward_pass(self):
@@ -220,10 +217,28 @@ class NeuralNet:
     # You have to output the test error from this function
 
     def predict(self, test, header=True):
+        raw_input = pd.read_csv(test)
+        test_dataset = self.preprocess(raw_input)
+        ncols = len(test_dataset.columns)
+        nrows = len(test_dataset.index)
+        print('ncols:', ncols)
+        print('nrows:', nrows)
+        out = self.forward_pass()
+        print('\nout')
+        print(out)
+        print(out.size)
+        error = 0.5 * np.power((out - self.y), 2)
+        print('\nerror')
+        print(error)
+        print(error.size)
+        print('total error:',np.sum(error))
         return 0
 
-
+# buying,maint,doors,persons,lug_boot,safety,class
 if __name__ == "__main__":
+    print('\n***SETUP***\n')
     neural_network = NeuralNet('train.csv')
+    print('\n\n***TRAINING***\n')
     neural_network.train()
+    print('\n\n***TESTING***\n')
     testError = neural_network.predict('test.csv')

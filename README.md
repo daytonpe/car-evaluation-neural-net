@@ -1,15 +1,19 @@
 # Car Evaluation Neural Network
 
 ## Data
-1. Title: Car Evaluation Database
 
-2. Sources:
+Data was acquired from he University of California Irvine Machine Learning Repository.
+https://archive.ics.uci.edu/ml/datasets/Car+Evaluation
+
+### Title: Car Evaluation Database
+
+### Sources:
    (a) Creator: Marko Bohanec
    (b) Donors: Marko Bohanec   (marko.bohanec@ijs.si)
                Blaz Zupan      (blaz.zupan@ijs.si)
    (c) Date: June, 1997
 
-3. Past Usage:
+### Past Usage:
 
    The hierarchical decision model, from which this dataset is
    derived, was first presented in
@@ -26,7 +30,7 @@
    B. Zupan, M. Bohanec, I. Bratko, J. Demsar: Machine learning by
    function decomposition. ICML-97, Nashville, TN. 1997 (to appear)
 
-4. Relevant Information Paragraph:
+### Relevant Information Paragraph:
 
    Car Evaluation Database was derived from a simple hierarchical
    decision model originally developed for the demonstration of DEX
@@ -59,12 +63,12 @@
    particularly useful for testing constructive induction and
    structure discovery methods.
 
-5. Number of Instances: 1728
+### Number of Instances: 1728
    (instances completely cover the attribute space)
 
-6. Number of Attributes: 6
+### Number of Attributes: 6
 
-7. Attribute Values:
+### Attribute Values:
 
    buying       v-high, high, med, low
    maint        v-high, high, med, low
@@ -73,9 +77,9 @@
    lug_boot     small, med, big
    safety       low, med, high
 
-8. Missing Attribute Values: none
+### Missing Attribute Values: none
 
-9. Class Distribution (number of instances per class)
+### Class Distribution (number of instances per class)
 
    class      N          N[%]
    -----------------------------
