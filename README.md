@@ -5,6 +5,7 @@ Evaluate car condition from 6 parameters using a neural net.
 ## Changes to Base Code
 
 - Parameterized the activation function
+- Test Flag
 
 ## Data
 

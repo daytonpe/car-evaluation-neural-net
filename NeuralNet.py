@@ -43,7 +43,6 @@ class NeuralNet:
         ncols = len(train_dataset.columns)
         nrows = len(train_dataset.index)
         self.X = train_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
-        print('type(self.X: ', type(self.X))
         self.y = train_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
 
         # Find number of input and output layers from the dataset
@@ -117,7 +116,6 @@ class NeuralNet:
                                                        "persons",
                                                        "lug_boot",
                                                        "safety"])
-        print(train_set.shape)
         for index, row in train_set.iterrows():
             if row['class'] == 'unacc':
                 train_set.at[index, 'class'] = 0
@@ -130,14 +128,12 @@ class NeuralNet:
             else:
                 row['class'] = -1  # TODO might be a better way to do this
         pd.set_option('display.max_columns', 500)
-        print(train_set.shape)
         np.savetxt('panda2.txt', train_set, delimiter="\t")
         train_set[['class']] = train_set[['class']].apply(pd.to_numeric)
-        print(train_set.dtypes)
         return train_set
 
     # Below is the training function
-    def train(self, activation, max_iterations=1000, learning_rate=0.05):
+    def train(self, max_iterations=1000, learning_rate=0.05):
         for iteration in range(max_iterations):
             out = self.forward_pass()
             error = 0.5 * np.power((out - self.y), 2)
@@ -161,10 +157,8 @@ class NeuralNet:
         print('\n**  w23  **')
         print(self.w23)
 
-    def forward_pass(self, test_flag=False):
+    def forward_pass(self):
         # pass our inputs through our neural network
-        if test_flag:
-            print('testing')
 
         if self.activation == "sigmoid":
             in1 = np.dot(self.X, self.w01)
@@ -263,17 +257,45 @@ class NeuralNet:
                                              "safety",
                                              "class"])
         test_dataset = self.preprocess(raw_input)
-        print(self.y.shape)
-        out = self.forward_pass()
-        error = 0.5 * np.power((out - self.y), 2)
+
+        ncols = len(test_dataset.columns)
+        nrows = len(test_dataset.index)
+        X_test = test_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
+        Y_test = test_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
+
+        if self.activation == "sigmoid":
+            in1 = np.dot(X_test, self.w01)
+            X12_test = self.__sigmoid(in1)
+            in2 = np.dot(X12_test, self.w12)
+            X23_test = self.__sigmoid(in2)
+            in3 = np.dot(X23_test, self.w23)
+            out = self.__sigmoid(in3)
+        if self.activation == "tanh":
+            in1 = np.dot(X_test, self.w01)
+            X12_test = self.__tanh(in1)
+            in2 = np.dot(X12_test, self.w12)
+            X23_test = self.__tanh(in2)
+            in3 = np.dot(X23_test, self.w23)
+            out = self.__tanh(in3)
+        if self.activation == "relu":
+            in1 = np.dot(X_test, self.w01)
+            X12_test = self.__relu(in1)
+            in2 = np.dot(X12_test, self.w12)
+            X23_test = self.__relu(in2)
+            in3 = np.dot(X23_test, self.w23)
+            out = self.__relu(in3)
+
+        error = 0.5 * np.power((out - Y_test), 2)
         print('Total error for test data is', np.sum(error))
         return 0
 
 
 if __name__ == "__main__":
     print('\n\n***SETUP***\n')
-    neural_network = NeuralNet('train.csv', 'sigmoid')
+    neural_network = NeuralNet('train.csv', 'tanh')
+
     print('\n\n***TRAINING***\n')
-    neural_network.train('relu')
+    neural_network.train()
+
     print('\n\n***TESTING***\n')
     testError = neural_network.predict('test.csv')
