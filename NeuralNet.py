@@ -255,7 +255,13 @@ class NeuralNet:
     # Output the test error from this function
 
     def predict(self, test, header=True):
-        raw_input = pd.read_csv(test)
+        raw_input = pd.read_csv(test, names=["buying",
+                                             "maint",
+                                             "doors",
+                                             "persons",
+                                             "lug_boot",
+                                             "safety",
+                                             "class"])
         test_dataset = self.preprocess(raw_input)
         print(self.y.shape)
         out = self.forward_pass()
