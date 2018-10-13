@@ -39,9 +39,11 @@ class NeuralNet:
                                               "safety",
                                               "class"])
         train_dataset = self.preprocess(raw_input)
+        # print(train_dataset)
         ncols = len(train_dataset.columns)
         nrows = len(train_dataset.index)
         self.X = train_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
+        print('type(self.X: ', type(self.X))
         self.y = train_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
 
         # Find number of input and output layers from the dataset
@@ -64,6 +66,7 @@ class NeuralNet:
         self.X23 = np.zeros((len(self.X), h2))
         self.delta23 = np.zeros((h2, output_layer_size))
         self.deltaOut = np.zeros((output_layer_size, 1))
+        print('done with init')
 
     def __activation(self, x, activation="sigmoid"):
         if self.activation == "sigmoid":
@@ -106,32 +109,34 @@ class NeuralNet:
 
     def preprocess(self, raw_input):
         print(raw_input.shape)
-        train_set = pd.get_dummies(raw_input)
-        # train_set = pd.get_dummies(raw_input, columns=["buying",
-        #                                                "maint",
-        #                                                "doors",
-        #                                                "persons",
-        #                                                "lug_boot",
-        #                                                "safety"])
-        # # TODO make this more eloquent
-        # for index, row in train_set.iterrows():
-        #     if row['class'] == 'unacc':
-        #         train_set.at[index, 'class'] = 0.
-        #     elif row['class'] == 'acc':
-        #         train_set.at[index, 'class'] = 1.
-        #     elif row['class'] == 'good':
-        #         train_set.at[index, 'class'] = 2.
-        #     elif row['class'] == 'vgood':
-        #         train_set.at[index, 'class'] = 3.
-        #     else:
-        #         row['class'] = -1.  # TODO might be a better way to do this
-        # pd.set_option('display.max_columns', 500)
+        # train_set = pd.get_dummies(raw_input)
+
+        train_set = pd.get_dummies(raw_input, columns=["buying",
+                                                       "maint",
+                                                       "doors",
+                                                       "persons",
+                                                       "lug_boot",
+                                                       "safety"])
         print(train_set.shape)
-        np.savetxt('panda.txt', train_set, delimiter="\t")
+        for index, row in train_set.iterrows():
+            if row['class'] == 'unacc':
+                train_set.at[index, 'class'] = 0
+            elif row['class'] == 'acc':
+                train_set.at[index, 'class'] = 1
+            elif row['class'] == 'good':
+                train_set.at[index, 'class'] = 2
+            elif row['class'] == 'vgood':
+                train_set.at[index, 'class'] = 3
+            else:
+                row['class'] = -1  # TODO might be a better way to do this
+        pd.set_option('display.max_columns', 500)
+        print(train_set.shape)
+        np.savetxt('panda2.txt', train_set, delimiter="\t")
+        train_set[['class']] = train_set[['class']].apply(pd.to_numeric)
+        print(train_set.dtypes)
         return train_set
 
     # Below is the training function
-
     def train(self, activation, max_iterations=1000, learning_rate=0.05):
         for iteration in range(max_iterations):
             out = self.forward_pass()
@@ -260,7 +265,8 @@ class NeuralNet:
 
 
 if __name__ == "__main__":
-    neural_network = NeuralNet('train.csv', 'relu')
+    print('\n\n***SETUP***\n')
+    neural_network = NeuralNet('train.csv', 'sigmoid')
     print('\n\n***TRAINING***\n')
     neural_network.train('relu')
     print('\n\n***TESTING***\n')
