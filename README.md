@@ -1,5 +1,11 @@
 # Car Evaluation Neural Network
 
+Evaluate car condition from 6 parameters using a neural net.
+
+## Changes to Base Code
+
+- Parameterized the activation function
+
 ## Data
 
 Data was acquired from he University of California Irvine Machine Learning Repository.

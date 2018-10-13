@@ -31,12 +31,16 @@ class NeuralNet:
         # test refers to the testing dataset
         # h1 and h2 represent the number of nodes in 1st and 2nd hidden layers
 
-        raw_input = pd.read_csv(train)
+        raw_input = pd.read_csv(train, names=["buying",
+                                              "maint",
+                                              "doors",
+                                              "persons",
+                                              "lug_boot",
+                                              "safety",
+                                              "class"])
         train_dataset = self.preprocess(raw_input)
         ncols = len(train_dataset.columns)
         nrows = len(train_dataset.index)
-        print('ncols:', ncols)
-        print('nrows:', nrows)
         self.X = train_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
         self.y = train_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
 
@@ -62,7 +66,6 @@ class NeuralNet:
         self.deltaOut = np.zeros((output_layer_size, 1))
 
     def __activation(self, x, activation="sigmoid"):
-        print('activation ', activation)
         if self.activation == "sigmoid":
             self.__sigmoid(self, x)
         if self.activation == "tanh":
@@ -71,7 +74,6 @@ class NeuralNet:
             self.__relu(self, x)
 
     def __activation_derivative(self, x, activation="sigmoid"):
-        print('activation derivative ', activation)
         if self.activation == "sigmoid":
             self.__sigmoid_derivative(self, x)
         if self.activation == "tanh":
@@ -81,10 +83,10 @@ class NeuralNet:
 
     # tanh and derivative
     def __tanh(self, x):
-        return (np.exp(x) - np.exp(-x))/(np.exp(x)+np.exp(-x))
+        return np.tanh(x)
 
     def __tanh_derivative(self, x):
-        return 1 - self.__tanh(self, x)*self.__tanh(self, x)
+        return 1.0 - np.tanh(x)**2
 
     # ReLU and derivative
     def __relu(self, x):
@@ -99,13 +101,33 @@ class NeuralNet:
         return 1 / (1 + np.exp(-x))
 
     # derivative of sigmoid function, indicates confidence about existing weight
-    # NOTE: Why is this not sigmoid(x)*(1-sigmoid(x)) ???
     def __sigmoid_derivative(self, x):
         return x * (1 - x)
 
     def preprocess(self, raw_input):
+        print(raw_input.shape)
         train_set = pd.get_dummies(raw_input)
-        print(train_set[0:5])
+        # train_set = pd.get_dummies(raw_input, columns=["buying",
+        #                                                "maint",
+        #                                                "doors",
+        #                                                "persons",
+        #                                                "lug_boot",
+        #                                                "safety"])
+        # # TODO make this more eloquent
+        # for index, row in train_set.iterrows():
+        #     if row['class'] == 'unacc':
+        #         train_set.at[index, 'class'] = 0.
+        #     elif row['class'] == 'acc':
+        #         train_set.at[index, 'class'] = 1.
+        #     elif row['class'] == 'good':
+        #         train_set.at[index, 'class'] = 2.
+        #     elif row['class'] == 'vgood':
+        #         train_set.at[index, 'class'] = 3.
+        #     else:
+        #         row['class'] = -1.  # TODO might be a better way to do this
+        # pd.set_option('display.max_columns', 500)
+        print(train_set.shape)
+        np.savetxt('panda.txt', train_set, delimiter="\t")
         return train_set
 
     # Below is the training function
@@ -114,6 +136,7 @@ class NeuralNet:
         for iteration in range(max_iterations):
             out = self.forward_pass()
             error = 0.5 * np.power((out - self.y), 2)
+            # print(error.sum())
             self.backward_pass(out)
             update_layer2 = learning_rate * self.X23.T.dot(self.deltaOut)
             update_layer1 = learning_rate * self.X12.T.dot(self.delta23)
@@ -133,9 +156,11 @@ class NeuralNet:
         print('\n**  w23  **')
         print(self.w23)
 
-    def forward_pass(self):
+    def forward_pass(self, test_flag=False):
         # pass our inputs through our neural network
-        print('fp', self.activation)
+        if test_flag:
+            print('testing')
+
         if self.activation == "sigmoid":
             in1 = np.dot(self.X, self.w01)
             self.X12 = self.__sigmoid(in1)
@@ -160,14 +185,12 @@ class NeuralNet:
         return out
 
     def backward_pass(self, out):
-        print('bp ', self.activation)
         # pass our inputs through our neural network
         self.compute_output_delta(out)
         self.compute_hidden_layer2_delta()
         self.compute_hidden_layer1_delta()
 
     def compute_output_delta(self, out):
-        print('cod ', self.activation)
         if self.activation == "sigmoid":
             delta_output = (self.y - out) * (self.__sigmoid_derivative(out))
         if self.activation == "tanh":
@@ -178,7 +201,6 @@ class NeuralNet:
         self.deltaOut = delta_output
 
     def compute_hidden_layer2_delta(self):
-        print('chl2 ', self.activation)
         if self.activation == "sigmoid":
             delta_hidden_layer2 = (
                 self.deltaOut.dot(self.w23.T)) * (self.__sigmoid_derivative(self.X23))
@@ -194,7 +216,6 @@ class NeuralNet:
         self.delta23 = delta_hidden_layer2
 
     def compute_hidden_layer1_delta(self):
-        print('chl1 ', self.activation)
         if self.activation == "sigmoid":
             delta_hidden_layer1 = (
                 self.delta23.dot(self.w12.T)) * (self.__sigmoid_derivative(self.X12))
@@ -210,7 +231,6 @@ class NeuralNet:
         self.delta12 = delta_hidden_layer1
 
     def compute_input_layer_delta(self):
-        print('cild', self.activation)
         if self.activation == "sigmoid":
             delta_input_layer = np.multiply(
                 self.__sigmoid_derivative(self.X01), self.delta01.dot(self.w01.T))
@@ -232,26 +252,15 @@ class NeuralNet:
     def predict(self, test, header=True):
         raw_input = pd.read_csv(test)
         test_dataset = self.preprocess(raw_input)
-        ncols = len(test_dataset.columns)
-        nrows = len(test_dataset.index)
-        print('ncols:', ncols)
-        print('nrows:', nrows)
+        print(self.y.shape)
         out = self.forward_pass()
-        print('\nout')
-        print(out)
-        print(out.size)
         error = 0.5 * np.power((out - self.y), 2)
-        print('\nerror')
-        print(error)
-        print(error.size)
-        print('total error:', np.sum(error))
+        print('Total error for test data is', np.sum(error))
         return 0
 
 
-# buying,maint,doors,persons,lug_boot,safety,class
 if __name__ == "__main__":
-    print('\n***SETUP***\n')
-    neural_network = NeuralNet('train.csv', 'tanh')
+    neural_network = NeuralNet('train.csv', 'relu')
     print('\n\n***TRAINING***\n')
     neural_network.train('relu')
     print('\n\n***TESTING***\n')
