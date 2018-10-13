@@ -1,4 +1,4 @@
-#####################################################################################################################
+####################################################################################################
 #   CS 6375.003 - Assignment 3, Neural Network Programming
 #   This is a starter code in Python 3.6 for a 2-hidden-layer neural network.
 #   You need to have numpy and pandas installed before running this code.
@@ -11,14 +11,17 @@
 #   h2 - number of neurons in the second hidden layer
 #   X - vector of features for each instance
 #   y - output for each instance
-#   w01, delta01, X01 - weights, updates and outputs for connection from layer 0 (input) to layer 1 (first hidden)
-#   w12, delata12, X12 - weights, updates and outputs for connection from layer 1 (first hidden) to layer 2 (second hidden)
-#   w23, delta23, X23 - weights, updates and outputs for connection from layer 2 (second hidden) to layer 3 (output layer)
+#   w01, delta01, X01 - weights, updates and outputs
+#       for connection from layer 0 (input) to layer 1 (first hidden)
+#   w12, delata12, X12 - weights, updates and outputs
+#       for connection from layer 1 (first hidden) to layer 2 (second hidden)
+#   w23, delta23, X23 - weights, updates and outputs
+#       for connection from layer 2 (second hidden) to layer 3 (output layer)
 #
 #   You need to complete all TODO marked sections
 #   You are free to modify this code in any way you want, but need to mention it in the README file.
 #
-#####################################################################################################################
+####################################################################################################
 
 
 import numpy as np
@@ -26,7 +29,7 @@ import pandas as pd
 
 
 class NeuralNet:
-    def __init__(self, train, header = True, h1 = 4, h2 = 2):
+    def __init__(self, train, header=True, h1=4, h2=2):
         np.random.seed(1)
         # train refers to the training dataset
         # test refers to the testing dataset
@@ -37,7 +40,7 @@ class NeuralNet:
         train_dataset = self.preprocess(raw_input)
         ncols = len(train_dataset.columns)
         nrows = len(train_dataset.index)
-        self.X = train_dataset.iloc[:, 0:(ncols -1)].values.reshape(nrows, ncols-1)
+        self.X = train_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
         self.y = train_dataset.iloc[:, (ncols-1)].values.reshape(nrows, 1)
         #
         # Find number of input and output layers from the dataset
@@ -49,7 +52,8 @@ class NeuralNet:
             output_layer_size = len(self.y[0])
 
         # assign random weights to matrices in network
-        # number of weights connecting layers = (no. of nodes in previous layer) x (no. of nodes in following layer)
+        # number of weights connecting layers =
+        # (no. of nodes in previous layer) x (no. of nodes in following layer)
         self.w01 = 2 * np.random.random((input_layer_size, h1)) - 1
         self.X01 = self.X
         self.delta01 = np.zeros((input_layer_size, h1))
@@ -76,17 +80,37 @@ class NeuralNet:
         if activation == "sigmoid":
             self.__sigmoid_derivative(self, x)
 
+    # tanh and derivative
+    def __tanh(self, x):
+        return (np.exp(x) - np.exp(-x))/(np.exp(x)+np.exp(-x))
+
+    def __tanh_derivative(self, x):
+        return 1 - self.__tanh(self, x)*self.__tanh(self, x)
+
+    # ReLU and derivative
+    def __relu(self, x):
+        if x > 0:
+            return x
+        else:
+            return 0
+
+    def __relu_derivative(self, x):
+        if x > 0:
+            return 1
+        else:
+            return 0
+
     def __sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
     # derivative of sigmoid function, indicates confidence about existing weight
-
+    # NOTE: Why is this not sigmoid(x)*(1-sigmoid(x)) ???
     def __sigmoid_derivative(self, x):
         return x * (1 - x)
 
     #
-    # TODO: Write code for pre-processing the dataset, which would include standardization, normalization,
-    #   categorical to numerical, etc
+    # TODO: Write code for pre-processing the dataset, which would include standardization,
+    #   normalization, categorical to numerical, etc
     #
 
     def preprocess(self, X):
@@ -95,7 +119,7 @@ class NeuralNet:
 
     # Below is the training function
 
-    def train(self, max_iterations = 1000, learning_rate = 0.05):
+    def train(self, max_iterations=1000, learning_rate=0.05):
         for iteration in range(max_iterations):
             out = self.forward_pass()
             error = 0.5 * np.power((out - self.y), 2)
@@ -108,7 +132,8 @@ class NeuralNet:
             self.w12 += update_layer1
             self.w01 += update_input
 
-        print("After " + str(max_iterations) + " iterations, the total error is " + str(np.sum(error)))
+        print("After " + str(max_iterations)
+              + " iterations, the total error is " + str(np.sum(error)))
         print("The final weight vectors are (starting from input to output layers)")
         print(self.w01)
         print(self.w12)
@@ -116,15 +141,13 @@ class NeuralNet:
 
     def forward_pass(self):
         # pass our inputs through our neural network
-        in1 = np.dot(self.X, self.w01 )
+        in1 = np.dot(self.X, self.w01)
         self.X12 = self.__sigmoid(in1)
         in2 = np.dot(self.X12, self.w12)
         self.X23 = self.__sigmoid(in2)
         in3 = np.dot(self.X23, self.w23)
         out = self.__sigmoid(in3)
         return out
-
-
 
     def backward_pass(self, out, activation):
         # pass our inputs through our neural network
@@ -144,7 +167,8 @@ class NeuralNet:
 
     def compute_hidden_layer2_delta(self, activation="sigmoid"):
         if activation == "sigmoid":
-            delta_hidden_layer2 = (self.deltaOut.dot(self.w23.T)) * (self.__sigmoid_derivative(self.X23))
+            delta_hidden_layer2 = (
+                self.deltaOut.dot(self.w23.T)) * (self.__sigmoid_derivative(self.X23))
 
         self.delta23 = delta_hidden_layer2
 
@@ -152,7 +176,8 @@ class NeuralNet:
 
     def compute_hidden_layer1_delta(self, activation="sigmoid"):
         if activation == "sigmoid":
-            delta_hidden_layer1 = (self.delta23.dot(self.w12.T)) * (self.__sigmoid_derivative(self.X12))
+            delta_hidden_layer1 = (
+                self.delta23.dot(self.w12.T)) * (self.__sigmoid_derivative(self.X12))
 
             self.delta12 = delta_hidden_layer1
 
@@ -160,7 +185,8 @@ class NeuralNet:
 
     def compute_input_layer_delta(self, activation="sigmoid"):
         if activation == "sigmoid":
-            delta_input_layer = np.multiply(self.__sigmoid_derivative(self.X01), self.delta01.dot(self.w01.T))
+            delta_input_layer = np.multiply(
+                self.__sigmoid_derivative(self.X01), self.delta01.dot(self.w01.T))
 
             self.delta01 = delta_input_layer
 
@@ -168,7 +194,7 @@ class NeuralNet:
     # You can assume that the test dataset has the same format as the training dataset
     # You have to output the test error from this function
 
-    def predict(self, test, header = True):
+    def predict(self, test, header=True):
         return 0
 
 
@@ -176,4 +202,3 @@ if __name__ == "__main__":
     neural_network = NeuralNet("train.csv")
     neural_network.train()
     testError = neural_network.predict("test.csv")
-
