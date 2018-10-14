@@ -27,6 +27,7 @@ import pandas as pd
 class NeuralNet:
     def __init__(self, train, activation, header=True, h1=4, h2=2):
         self.activation = activation
+        print('Using activation ', self.activation)
         np.random.seed(1)
         # test refers to the testing dataset
         # h1 and h2 represent the number of nodes in 1st and 2nd hidden layers
@@ -39,9 +40,11 @@ class NeuralNet:
                                               "safety",
                                               "class"])
         train_dataset = self.preprocess(raw_input)
-        # print(train_dataset)
+        np.savetxt('train_dataset.txt', train_dataset, delimiter="\t")
         ncols = len(train_dataset.columns)
         nrows = len(train_dataset.index)
+        print('cols', ncols)
+        print('rows', nrows)
         self.X = train_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
         self.y = train_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
 
@@ -118,18 +121,22 @@ class NeuralNet:
                                                        "safety"])
         for index, row in train_set.iterrows():
             if row['class'] == 'unacc':
-                train_set.at[index, 'class'] = 0
+                train_set.at[index, 'class'] = 0.
             elif row['class'] == 'acc':
-                train_set.at[index, 'class'] = 1
+                train_set.at[index, 'class'] = .33
             elif row['class'] == 'good':
-                train_set.at[index, 'class'] = 2
+                train_set.at[index, 'class'] = .66
             elif row['class'] == 'vgood':
-                train_set.at[index, 'class'] = 3
+                train_set.at[index, 'class'] = 1.
             else:
-                row['class'] = -1  # TODO might be a better way to do this
+                row['class'] = -1.  # TODO might be a better way to do this
         pd.set_option('display.max_columns', 500)
-        np.savetxt('panda2.txt', train_set, delimiter="\t")
         train_set[['class']] = train_set[['class']].apply(pd.to_numeric)
+
+        # move the class column to the end
+        cols = train_set.columns.tolist()
+        cols = cols[1:] + cols[:1]
+        train_set = train_set[cols]
         return train_set
 
     # Below is the training function
@@ -137,7 +144,6 @@ class NeuralNet:
         for iteration in range(max_iterations):
             out = self.forward_pass()
             error = 0.5 * np.power((out - self.y), 2)
-            # print(error.sum())
             self.backward_pass(out)
             update_layer2 = learning_rate * self.X23.T.dot(self.deltaOut)
             update_layer1 = learning_rate * self.X12.T.dot(self.delta23)
@@ -260,7 +266,10 @@ class NeuralNet:
 
         ncols = len(test_dataset.columns)
         nrows = len(test_dataset.index)
+        print('cols', ncols)
+        print('rows', nrows)
         X_test = test_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
+        np.savetxt('xtest.txt', X_test, delimiter="\t")
         Y_test = test_dataset.iloc[:, (ncols - 1)].values.reshape(nrows, 1)
 
         if self.activation == "sigmoid":
@@ -285,8 +294,43 @@ class NeuralNet:
             in3 = np.dot(X23_test, self.w23)
             out = self.__relu(in3)
 
-        error = 0.5 * np.power((out - Y_test), 2)
-        print('Total error for test data is', np.sum(error))
+        classifications = []
+        for x in np.nditer(out):
+            if x < .167:
+                classifications.append('unacc')
+            elif x < .5:
+                classifications.append('acc')
+            elif x < .83:
+                classifications.append('good')
+            else:
+                classifications.append('vgood')
+
+        actual = []
+        for x in np.nditer(Y_test):
+            if x < .167:
+                actual.append('unacc')
+            elif x < .5:
+                actual.append('acc')
+            elif x < .83:
+                actual.append('good')
+            else:
+                actual.append('vgood')
+
+        # print('classification\n', classifications)
+        # print('actual\n', actual)
+
+        incorrect = 0.
+        correct = 0.
+        for idx, val in enumerate(classifications):
+            if classifications[idx] != actual[idx]:
+                incorrect += 1.
+            else:
+                correct += 1.
+        np.savetxt('output.txt', out, fmt='%1.3f', delimiter="\t")
+        np.savetxt('ytest.txt', Y_test, delimiter="\t")
+        print('Number incorrect is', incorrect)
+        print('Number correct is', correct)
+        print('Error is '+"{:.2%}".format(incorrect / (correct + incorrect)))
         return 0
 
 
