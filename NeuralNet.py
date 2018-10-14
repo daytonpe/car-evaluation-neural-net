@@ -81,10 +81,12 @@ class NeuralNet:
     def __activation_derivative(self, x, activation="sigmoid"):
         if self.activation == "sigmoid":
             self.__sigmoid_derivative(self, x)
-        if self.activation == "tanh":
+        elif self.activation == "tanh":
             self.__tanh_derivative(self, x)
-        if self.activation == "relu":
+        elif self.activation == "relu":
             self.__relu_derivative(self, x)
+        else:
+            print('problem in activation derivative')
 
     # tanh and derivative
     def __tanh(self, x):
@@ -156,6 +158,7 @@ class NeuralNet:
         print("\nAfter " + str(max_iterations)
               + " iterations, the total error is " + str(np.sum(error)))
         print("The final weight vectors are (starting from input to output layers):\n")
+        np.set_printoptions(precision=3)
         print('\n**  w01  **')
         print(self.w01)
         print('\n**  w12  **')
@@ -198,10 +201,12 @@ class NeuralNet:
     def compute_output_delta(self, out):
         if self.activation == "sigmoid":
             delta_output = (self.y - out) * (self.__sigmoid_derivative(out))
-        if self.activation == "tanh":
+        elif self.activation == "tanh":
             delta_output = (self.y - out) * (self.__tanh_derivative(out))
-        if self.activation == "relu":
+        elif self.activation == "relu":
             delta_output = (self.y - out) * (self.__relu_derivative(out))
+        else:
+            print('problem in compute output delta')
 
         self.deltaOut = delta_output
 
@@ -210,13 +215,15 @@ class NeuralNet:
             delta_hidden_layer2 = (
                 self.deltaOut.dot(self.w23.T)) * (self.__sigmoid_derivative(self.X23))
 
-        if self.activation == "tanh":
+        elif self.activation == "tanh":
             delta_hidden_layer2 = (
                 self.deltaOut.dot(self.w23.T)) * (self.__tanh_derivative(self.X23))
 
-        if self.activation == "relu":
+        elif self.activation == "relu":
             delta_hidden_layer2 = (
                 self.deltaOut.dot(self.w23.T)) * (self.__relu_derivative(self.X23))
+        else:
+            print('problem in compute hidden layer 2')
 
         self.delta23 = delta_hidden_layer2
 
@@ -225,13 +232,15 @@ class NeuralNet:
             delta_hidden_layer1 = (
                 self.delta23.dot(self.w12.T)) * (self.__sigmoid_derivative(self.X12))
 
-        if self.activation == "tanh":
+        elif self.activation == "tanh":
             delta_hidden_layer1 = (
                 self.delta23.dot(self.w12.T)) * (self.__tanh_derivative(self.X12))
 
-        if self.activation == "relu":
+        elif self.activation == "relu":
             delta_hidden_layer1 = (
                 self.delta23.dot(self.w12.T)) * (self.__relu_derivative(self.X12))
+        else:
+            print('problem in compute hidden layer 1')
 
         self.delta12 = delta_hidden_layer1
 
@@ -240,14 +249,16 @@ class NeuralNet:
             delta_input_layer = np.multiply(
                 self.__sigmoid_derivative(self.X01), self.delta01.dot(self.w01.T))
 
-        if self.activation == "tanh":
+        elif self.activation == "tanh":
             delta_input_layer = np.multiply(
                 self.__tanh_derivative(self.X01), self.delta01.dot(self.w01.T))
 
-        if self.activation == "relu":
+        elif self.activation == "relu":
             delta_input_layer = np.multiply(
                 self.__relu_derivative(self.X01), self.delta01.dot(self.w01.T))
 
+        else:
+            print('problem in compute input layer delta')
         self.delta01 = delta_input_layer
 
     # Implement the predict function for applying the trained model on the  test dataset.
@@ -263,9 +274,9 @@ class NeuralNet:
                                              "safety",
                                              "class"])
         test_dataset = self.preprocess(raw_input)
-
         ncols = len(test_dataset.columns)
         nrows = len(test_dataset.index)
+        print('activation: ', self.activation)
         print('cols', ncols)
         print('rows', nrows)
         X_test = test_dataset.iloc[:, 0:(ncols - 1)].values.reshape(nrows, ncols-1)
@@ -279,20 +290,22 @@ class NeuralNet:
             X23_test = self.__sigmoid(in2)
             in3 = np.dot(X23_test, self.w23)
             out = self.__sigmoid(in3)
-        if self.activation == "tanh":
+        elif self.activation == "tanh":
             in1 = np.dot(X_test, self.w01)
             X12_test = self.__tanh(in1)
             in2 = np.dot(X12_test, self.w12)
             X23_test = self.__tanh(in2)
             in3 = np.dot(X23_test, self.w23)
             out = self.__tanh(in3)
-        if self.activation == "relu":
+        elif self.activation == "relu":
             in1 = np.dot(X_test, self.w01)
             X12_test = self.__relu(in1)
             in2 = np.dot(X12_test, self.w12)
             X23_test = self.__relu(in2)
             in3 = np.dot(X23_test, self.w23)
             out = self.__relu(in3)
+        else:
+            print('problem with activation function in prediction')
 
         classifications = []
         for x in np.nditer(out):
@@ -336,7 +349,7 @@ class NeuralNet:
 
 if __name__ == "__main__":
     print('\n\n***SETUP***\n')
-    neural_network = NeuralNet('train.csv', 'tanh')
+    neural_network = NeuralNet('train.csv', 'relu')
 
     print('\n\n***TRAINING***\n')
     neural_network.train()
